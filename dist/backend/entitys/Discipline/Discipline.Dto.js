@@ -23,7 +23,7 @@ class DisciplineDto {
         this.periodoCurricular = partial.periodoCurricular ?? 0;
         this.estado = partial.estado ?? "";
         this.campus = partial.campus ?? "";
-        this.processId = partial.processId;
+        this.processId = partial.processId ?? "";
     }
 }
 exports.DisciplineDto = DisciplineDto;
@@ -77,6 +77,6 @@ __decorate([
 __decorate([
     (0, class_validator_1.Matches)(/^[A-Za-z0-9]+$/, { message: 'Id do processo deve conter apenas caracteres alfanuméricos.' }),
     (0, class_validator_1.IsString)(),
-    (0, swagger_1.ApiProperty)({ example: '68251406185b7b0a9aa8978c' }),
+    (0, swagger_1.ApiProperty)({ example: 'e3e03e39ie3jroefj484fd5gd84' }),
     __metadata("design:type", String)
 ], DisciplineDto.prototype, "processId", void 0);
