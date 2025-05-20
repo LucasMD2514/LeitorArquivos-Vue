@@ -1,5 +1,6 @@
 <script src="./frontend.js"></script>
 
+
 <template>
 	<!-- Tela inicial -->
 	<div v-if="tela == 'inicio'" class="telaInicial">
@@ -21,7 +22,7 @@
 				<p class="descricaoDaTela" v-html="descricaoDaTela()"></p>
 			</div>
 
-			<button v-if="tela == 'controleDados'" @click="iniciarProcesso">+ Novo Processo</button>
+			<button v-if="tela == 'controleDados'" @click="iniciarProcesso()">+ Novo Processo</button>
 			</div>
 
 		<div style="margin-top: 50px;">

@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import ControleDados from '@/components/router/ControleImportacao.vue';
-import ImportacaoDados from '@/components/router/ImportacaoDados.vue';
 
 
 const routes = [

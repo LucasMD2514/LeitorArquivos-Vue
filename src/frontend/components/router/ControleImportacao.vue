@@ -42,7 +42,9 @@ export default {
   data() {
     return {
       tela: "controleDados",
-      processos: [] // Substitua com seus dados reais
+      processos: [
+
+      ] // Substitua com seus dados reais
     };
   },
   methods: {

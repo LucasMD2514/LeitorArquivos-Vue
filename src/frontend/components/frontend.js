@@ -2,7 +2,8 @@
 import axios from 'axios';
 import * as XLSX from "xlsx"; // Usado para o suporte a arquivos do Excel
 import "./sheets/styles.css";  // Importação do CSS externo
-
+import { useRouter } from 'vue-router';
+const router = useRouter();
 export default {
 	data() {
 		return {
@@ -58,90 +59,41 @@ export default {
 		}
 	},
 	methods: {
-		// Processos
-		async abrirProcesso(id) {
-			const JSONHeaders = this.JSONHeaders;
-			const url = `http://localhost:8080/Process/Get/${id}`;
-			await axios.get(url, JSONHeaders)
-			.then(async response => {
-				const processo = response.data;
-				if(processo) {
-					this.processoAtual = response.data;
-					const periodoInicio = this.processoAtual.periodoInicio?.trim() ?? "";
-					const periodoTermino = this.processoAtual.periodoTermino?.trim() ?? "";
+    async abrirProcesso(id) {
+        const JSONHeaders = this.JSONHeaders;
+        this.$router.push({name: "process", params: {id: id}}); // Alterado para this.$router
+        // ... resto do método permanece igual
+    },
 
-					// Início de Período detectado, carregando dado vindo do banco
-					if(periodoInicio) {
-						const split = periodoInicio.split("/");
-						if(split?.length == 2) {
-							this.anoLetivoInicio = parseInt(split[0])
-							this.periodoInicio = parseInt(split[1])
-						}
-					}
-					// Término de Período detectado, carregando dado vindo do banco
-					if(periodoTermino) {
-						const split = periodoTermino.split("/");
-						if(split?.length == 2) {
-							this.anoLetivoTermino = parseInt(split[0])
-							this.periodoTermino = parseInt(split[1])
-						}
-					}
+    async iniciarProcesso() {
+        try {
+            const response = await axios.post("http://localhost:8080/Process/Post", {
+                periodoInicio: "",
+                periodoTermino: "",
+                inicio: new Date(),
+                termino: new Date(0)
+            }, this.JSONHeaders);
 
-					this.processoVisualizando = (this.processoAtual.inicio <= this.processoAtual.termino);
-					if(this.processoVisualizando) {
-						const id = this.processoAtual._id;
-						async function pegarLista(schemaKey) {
-							try {
-								const response = await axios.get(`http://localhost:8080/${schemaKey}/GetByProcess/${id}`, JSONHeaders);
-								console.log(`Dados recebidos (schemaKey: ${schemaKey}): `, response.data?.length ?? 0);
-								return response.data ?? [];
-							} catch (error) {
-								console.error(`Erro ao receber dados (schemaKey: ${schemaKey}):`, error?.message ?? error);
-								return [];
-							}
-						}
+            // Primeiro faz a chamada API e depois navega com o ID retornado
+            if(response.data && response.data._id) {
+                this.$router.push({name: "process", params: {id: response.data._id}});
+                return response.data;
+            }
+        } catch (error) {
+            console.error("Erro ao iniciar processo:", error);
+            throw error;
+        }
+    }
+}
+	async cancelarProcesso(id) {
+		let semErros = true;
+		const JSONHeaders = this.JSONHeaders;
+		async function deletarRelacionados(schemaKey) {
+			if(!semErros) return;
 
-						this.listaDisciplinas = await pegarLista("Discipline");
-						this.listaTurmas = await pegarLista("Class");
-						this.listaUsuarios = await pegarLista("User");
-						this.listaVinculos = await pegarLista("Bond");
-					}
-					this.mudarTela("importarPeriodo");
-				}
-				else console.error(`Erro ao abrir processo (ID: ${id}): Dado vazio.`);
-			})
-			.catch(error => {
-				this.processos = [];
-				console.error(`Erro ao abrir processo (ID: ${id}): `, error?.message ?? error);
-			});
-		},
-		async iniciarProcesso() {
-			const response = await axios.post("http://localhost:8080/Process/Post", {
-				periodoInicio: "",
-				periodoTermino: "",
-				inicio: new Date(),
-				termino: new Date(0)
-			}, this.JSONHeaders)
+			await axios.delete(`http://localhost:8080/${schemaKey}/DeleteByProcess/${id}`, JSONHeaders)
 			.then(response => {
-				const processo = response.data;
-				processo.status = (processo.inicio >= processo.termino) ? "Em andamento" : "Concluído";
-				this.processoAtual = processo;
-				this.processos.push(processo);
-				this.mudarTela("importarPeriodo");
-			})
-			.catch(error => {
-				console.error(`Erro ao iniciar processo: `, error?.message ?? error);
-			});
-		},
-		async cancelarProcesso(id) {
-			let semErros = true;
-			const JSONHeaders = this.JSONHeaders;
-			async function deletarRelacionados(schemaKey) {
-				if(!semErros) return;
-
-				await axios.delete(`http://localhost:8080/${schemaKey}/DeleteByProcess/${id}`, JSONHeaders)
-				.then(response => {
-					console.log(`Foram deletados ${response.data.deletedCount} dados (schemaKey: ${schemaKey})`);
+				console.log(`Foram deletados ${response.data.deletedCount} dados (schemaKey: ${schemaKey})`);
 				})
 				.catch(error => {
 					console.error(`Erro ao apagar dados do processo (ID: ${id}, schemaKey: ${schemaKey}): ` + error?.message ?? error);
@@ -469,4 +421,3 @@ export default {
 			return `${truncado}....${extensao}`;
 		}
 	}
-}
